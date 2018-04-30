@@ -1,7 +1,7 @@
-package main
+package src
 
 type Artist struct {
-	Id int `json:"id"`
+	Id string `json:"id"`
 	Name string `json:"name"`
 	Url string `json:"url"`
 	ImageUrl string `json:"image_url"`

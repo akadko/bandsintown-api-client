@@ -1,11 +1,10 @@
-package main
+package src
 
 import (
 	"net/http"
 	"net/url"
 	"encoding/json"
 	"os"
-	"fmt"
 	"time"
 	"io/ioutil"
 	"strconv"
@@ -13,8 +12,8 @@ import (
 )
 
 type Client struct {
-	baseUrl string
-	appId string
+	baseURL string
+	appId   string
 
 	http *http.Client
 }
@@ -31,57 +30,34 @@ func (apiError ApiError) Error() string {
 
 func NewClient() *Client {
 	c := Client{
-		baseUrl: "https://rest.bandsintown.com/",
-		appId: os.Getenv("BANDSINTOWN_APP_ID"),
-		http: &http.Client{},
+		baseURL: "https://rest.bandsintown.com/",
+		appId:   os.Getenv("BANDSINTOWN_APP_ID"),
+		http:    &http.Client{},
 	}
 
 	return &c
 }
 
-func (c *Client) Set(key string, value string) error {
-	switch key {
-	case "baseUrl":
-		c.baseUrl = value
-		return nil
-	case "appId":
-		c.appId = value
-		return nil
-	}
+func (c *Client) SetAppID(appId string) {
+	c.appId = appId
+}
 
-	return fmt.Errorf("Wrong parameter \"%s\" of Bandsintown API Client.", key)
+func (c *Client) SetBaseURL(baseURL string) {
+	c.baseURL = baseURL
+}
+
+func (c *Client) SetHTTPClient(http *http.Client) {
+	c.http = http
 }
 
 func (c *Client) GetArtistInfo(artistName string) (*Artist, error) {
-	apiUrl := c.baseUrl + "artists/" + url.PathEscape(artistName)
+	apiUrl := c.baseURL + "artists/" + url.PathEscape(artistName)
 	v := url.Values{}
 	v.Set("app_id", c.appId)
 	apiUrl = apiUrl + "?" + v.Encode()
 
-	resp, err := c.http.Get(apiUrl)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		var apiError ApiError
-		json.Unmarshal(bodyBytes, &apiError)
-		apiError.StatusCode = resp.StatusCode
-
-		return nil, apiError
-	}
-
 	var artist Artist
-	err = json.Unmarshal(bodyBytes, &artist)
+	err := c.doGetRequest(apiUrl, &artist)
 
 	if err != nil {
 		return nil, err
@@ -90,8 +66,8 @@ func (c *Client) GetArtistInfo(artistName string) (*Artist, error) {
 	return &artist, nil
 }
 
-func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dateEnd *time.Time) ([]Event, error) {
-	apiUrl := c.baseUrl + "artists/" + url.PathEscape(artistName) + "/events"
+func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dateEnd *time.Time) (*[]Event, error) {
+	apiUrl := c.baseURL + "artists/" + url.PathEscape(artistName) + "/events"
 	v := url.Values{}
 	v.Set("app_id", c.appId)
 
@@ -101,10 +77,22 @@ func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dat
 	}
 
 	apiUrl = apiUrl + "?" + v.Encode()
-	resp, err := c.http.Get(apiUrl)
+	var events []Event
+
+	err := c.doGetRequest(apiUrl, &events)
 
 	if err != nil {
 		return nil, err
+	}
+
+	return &events, nil
+}
+
+func (c *Client) doGetRequest(url string, result interface{}) (error) {
+	resp, err := c.http.Get(url)
+
+	if err != nil {
+		return err
 	}
 
 	defer resp.Body.Close()
@@ -112,7 +100,7 @@ func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dat
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -120,19 +108,18 @@ func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dat
 		json.Unmarshal(bodyBytes, &apiError)
 		apiError.StatusCode = resp.StatusCode
 
-		return nil, apiError
+		return apiError
 	}
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var events []Event
-	err = json.Unmarshal(bodyBytes, events)
+	err = json.Unmarshal(bodyBytes, result)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return events, nil
+	return nil
 }
