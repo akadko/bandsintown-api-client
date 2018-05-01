@@ -26,8 +26,8 @@ type Event struct {
 
 type Venue struct {
 	Name string `json:"name"`
-	Latitude float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	Latitude string `json:"latitude"`
+	Longitude string `json:"longitude"`
 	City string `json:"city"`
 	Region string `json:"region"`
 	Country string `json:"country"`

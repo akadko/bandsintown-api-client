@@ -66,7 +66,7 @@ func (c *Client) GetArtistInfo(artistName string) (*Artist, error) {
 	return &artist, nil
 }
 
-func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dateEnd *time.Time) (*[]Event, error) {
+func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dateEnd *time.Time) ([]*Event, error) {
 	apiUrl := c.baseURL + "artists/" + url.PathEscape(artistName) + "/events"
 	v := url.Values{}
 	v.Set("app_id", c.appId)
@@ -77,7 +77,7 @@ func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dat
 	}
 
 	apiUrl = apiUrl + "?" + v.Encode()
-	var events []Event
+	var events []*Event
 
 	err := c.doGetRequest(apiUrl, &events)
 
@@ -85,7 +85,7 @@ func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dat
 		return nil, err
 	}
 
-	return &events, nil
+	return events, nil
 }
 
 func (c *Client) doGetRequest(url string, result interface{}) (error) {
