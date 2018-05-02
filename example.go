@@ -14,6 +14,7 @@ func main() {
 	fmt.Println(res, err)
 
 	res2, err := client.GetEventsForArtist("30 Seconds To Mars", nil, nil)
+	fmt.Println(err)
 	prettyPrintEvents(res2)
 
 	sortEventsByGeo(res2, 60.0, 30.0)
@@ -37,7 +38,7 @@ func sortEventsByGeo(events []*apiClient.Event, lat, long float64) {
 
 func prettyPrintEvents(events []*apiClient.Event) {
 	for _, event := range events {
-		fmt.Println(event.Id + " " + event.Datetime + " " + event.Venue.City)
+		fmt.Println(event.Id + " " + event.Datetime.Format("02.01.2006") + " " + event.Venue.City)
 	}
 
 	fmt.Println("\n")

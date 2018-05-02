@@ -1,5 +1,11 @@
 package src
 
+import (
+	"time"
+	"strings"
+	"fmt"
+)
+
 type Artist struct {
 	Id string `json:"id"`
 	Name string `json:"name"`
@@ -18,7 +24,7 @@ type Event struct {
 	ArtistId string `json:"artist_id"`
 	Url string `json:"url"`
 	OnSaleDatetime string `json:"on_sale_datetime"`
-	Datetime string `json:"datetime"`
+	Datetime EventTime `json:"datetime"`
 	Description string `json:"description"`
 	Venue *Venue `json:"venue"`
 	Offers []*Offer `json:"offers"`
@@ -38,4 +44,27 @@ type Offer struct {
 	OfferType string `json:"type"`
 	Url string `json:"url"`
 	Status string `json:"status"`
+}
+
+type EventTime struct {
+	time.Time
+}
+
+const etLayout = "2006-01-02T15:04:05"
+
+func (et *EventTime) UnmarshalJSON(b []byte) (err error) {
+	s := strings.Trim(string(b), "\"")
+	if s == "null" {
+		et.Time = time.Time{}
+		return
+	}
+	et.Time, err = time.Parse(etLayout, s)
+	return
+}
+
+func (et *EventTime) MarshalJSON() ([]byte, error) {
+	if et.Time.UnixNano() == (time.Time{}).UnixNano() {
+		return []byte("null"), nil
+	}
+	return []byte(fmt.Sprintf("\"%s\"", et.Time.Format(etLayout))), nil
 }
