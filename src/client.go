@@ -85,6 +85,10 @@ func (c *Client) GetEventsForArtist(artistName string, dateStart *time.Time, dat
 		return nil, err
 	}
 
+	for _, event := range events {
+		event.ArtistName = artistName
+	}
+
 	return events, nil
 }
 

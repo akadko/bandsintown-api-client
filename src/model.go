@@ -14,6 +14,7 @@ type Artist struct {
 
 type Event struct {
 	Id string `json:"id"`
+	ArtistName string
 	ArtistId string `json:"artist_id"`
 	Url string `json:"url"`
 	OnSaleDatetime string `json:"on_sale_datetime"`
